@@ -1,0 +1,15 @@
+# Google Cloud Key
+google-key.json
+
+# Environments
+.env
+.venv/
+venv/
+
+# Dependencies
+node_modules/
+Frontend/node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
