@@ -1,12 +1,35 @@
 import re
+import os
+import json
 from datetime import datetime
 from google.cloud import vision
+from google.oauth2 import service_account
 from ..schemas.invoice_schemas import InvoiceOCRResponse, DocumentType
 
 
 class OCRService:
     def __init__(self):
-        self.client = vision.ImageAnnotatorClient()
+        """
+        Initialize the Google Vision client by checking for Environment Variables (Production)
+        or falling back to the local credentials file (Development).
+        """
+        # 1. Attempt to get credentials from the Render Environment Variable
+        key_content = os.environ.get("GCP_SERVICE_ACCOUNT_JSON")
+
+        if key_content:
+            try:
+                # Production: Load credentials from the JSON string stored in Environment Variables
+                key_info = json.loads(key_content)
+                credentials = service_account.Credentials.from_service_account_info(key_info)
+                self.client = vision.ImageAnnotatorClient(credentials=credentials)
+            except Exception as e:
+                print(f"Error loading credentials from Environment Variable: {e}")
+                # Fallback to default behavior if parsing fails
+                self.client = vision.ImageAnnotatorClient()
+        else:
+            # Development: Uses the local 'google-key.json' file via GOOGLE_APPLICATION_CREDENTIALS
+            # Make sure your local .env has: GOOGLE_APPLICATION_CREDENTIALS="google-key.json"
+            self.client = vision.ImageAnnotatorClient()
 
     async def process_invoice(self, file_content: bytes) -> InvoiceOCRResponse:
         """
