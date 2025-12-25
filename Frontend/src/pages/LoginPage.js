@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom'; // 1. ייבוא ה-Hook לניווט
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
     const { login } = useAuth();
-    const navigate = useNavigate(); // 2. אתחול הניווט
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         try {
-            // שימוש ב-URLSearchParams עבור OAuth2 ב-FastAPI
             const formData = new URLSearchParams();
             formData.append('username', email);
             formData.append('password', password);
@@ -21,45 +23,64 @@ const LoginPage = () => {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             });
 
-            // שמירת הטוקן ב-Context
             login(response.data.access_token);
-
-            alert('מחובר בהצלחה!');
-
-            // 3. מעבר לדף ה-Dashboard לאחר הצלחה
             navigate('/dashboard');
-
         } catch (error) {
             console.error(error);
-            alert('שגיאה בהתחברות: ' + (error.response?.data?.detail || 'בדוק את הפרטים'));
+            alert('Authentication failed: ' + (error.response?.data?.detail || 'Please check your credentials'));
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <div className="login-container" style={{ textAlign: 'center', marginTop: '100px' }}>
-            <h2 className="text-xl font-bold mb-4">התחברות למערכת</h2>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-sm mx-auto">
-                <input
-                    className="border p-2 rounded"
-                    type="email"
-                    placeholder="אימייל"
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                />
-                <input
-                    className="border p-2 rounded"
-                    type="password"
-                    placeholder="סיסמה"
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-                <button
-                    type="submit"
-                    className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-                >
-                    כניסה
-                </button>
-            </form>
+        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+            <div className="sm:mx-auto sm:w-full sm:max-w-md">
+                <div className="flex justify-center mb-6">
+                    <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-blue-200">
+                        I
+                    </div>
+                </div>
+                <h2 className="text-center text-3xl font-extrabold text-gray-900">Sign in</h2>
+            </div>
+
+            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+                <div className="bg-white py-8 px-4 shadow-sm border border-gray-100 sm:rounded-2xl sm:px-10">
+                    <form className="space-y-6" onSubmit={handleSubmit}>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700">Email Address</label>
+                            <input
+                                type="email"
+                                required
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="admin@example.com"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700">Password</label>
+                            <input
+                                type="password"
+                                required
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="••••••••"
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className={`w-full py-3 px-4 rounded-xl font-bold text-white transition-all ${
+                                isLoading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100'
+                            }`}
+                        >
+                            {isLoading ? "Signing in..." : "Sign in"}
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     );
 };
