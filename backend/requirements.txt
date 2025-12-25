@@ -5,8 +5,8 @@ psycopg2-binary
 python-dotenv
 python-multipart
 python-jose[cryptography]
-passlib[bcrypt]
-pytesseract
+passlib==1.7.4
+bcrypt==4.0.1
 Pillow
 pydantic[email]
 google-cloud-vision
