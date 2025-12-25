@@ -74,16 +74,25 @@ async def upload_invoice(
 async def get_expenses(
         category: Optional[ExpenseCategory] = Query(None),
         business_name: Optional[str] = Query(None),
+        sort_by: str = Query("transaction_date"),
+        direction: str = Query("desc"),
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
+    # Handle empty strings from frontend
     category_val = category if category != "" else None
+    business_val = business_name if business_name != "" else None
 
     repo = ExpenseRepository(db)
     filters = ExpenseFilter(
         category=category_val,
-        business_name=business_name if business_name != "" else None
+        business_name=business_val
     )
 
-    expenses = repo.get_user_expenses_with_filters(user_id=current_user.id, filters=filters)
+    expenses = repo.get_user_expenses_with_filters(
+        user_id=current_user.id,
+        filters=filters,
+        sort_by=sort_by,
+        direction=direction
+    )
     return expenses

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
+    const [isRegister, setIsRegister] = useState(false); // Toggle state
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -15,56 +16,75 @@ const LoginPage = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const formData = new URLSearchParams();
-            formData.append('username', email);
-            formData.append('password', password);
+            if (isRegister) {
+                // Registration Flow
+                await api.post('/api/auth/register', { email, password });
+                alert('Account created! Please sign in.');
+                setIsRegister(false); // Switch back to login after success
+            } else {
+                // Login Flow
+                const formData = new URLSearchParams();
+                formData.append('username', email);
+                formData.append('password', password);
 
-            const response = await api.post('/api/auth/login', formData, {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            });
+                const response = await api.post('/api/auth/login', formData, {
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
 
-            login(response.data.access_token);
-            navigate('/dashboard');
+                login(response.data.access_token);
+                navigate('/dashboard');
+            }
         } catch (error) {
             console.error(error);
-            alert('Authentication failed: ' + (error.response?.data?.detail || 'Please check your credentials'));
+            alert('Error: ' + (error.response?.data?.detail || 'Something went wrong'));
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+        <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="flex justify-center mb-6">
-                    <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-blue-200">
+                    <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-indigo-200">
                         I
                     </div>
                 </div>
-                <h2 className="text-center text-3xl font-extrabold text-gray-900">Sign in</h2>
+                <h2 className="text-center text-3xl font-black text-slate-900 tracking-tight">
+                    {isRegister ? "Create an account" : "Sign in to Invoicely"}
+                </h2>
+                <p className="mt-2 text-center text-sm text-slate-500">
+                    {isRegister ? "Already have an account?" : "New to the platform?"}
+                    <button
+                        onClick={() => setIsRegister(!isRegister)}
+                        className="ml-1 font-bold text-indigo-600 hover:text-indigo-500 transition-colors"
+                    >
+                        {isRegister ? "Sign in here" : "Register now"}
+                    </button>
+                </p>
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-8 px-4 shadow-sm border border-gray-100 sm:rounded-2xl sm:px-10">
+                <div className="bg-white py-10 px-4 shadow-2xl shadow-slate-200/50 border border-slate-100 sm:rounded-[2rem] sm:px-10">
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700">Email Address</label>
+                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Email Address</label>
                             <input
                                 type="email"
                                 required
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                                placeholder="admin@example.com"
+                                className="mt-2 block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all"
+                                placeholder="name@company.com"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700">Password</label>
+                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Password</label>
                             <input
                                 type="password"
                                 required
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                className="mt-2 block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all"
                                 placeholder="••••••••"
                             />
                         </div>
@@ -72,11 +92,11 @@ const LoginPage = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className={`w-full py-3 px-4 rounded-xl font-bold text-white transition-all ${
-                                isLoading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100'
+                            className={`w-full py-4 px-4 rounded-xl font-black uppercase tracking-widest text-white transition-all duration-300 ${
+                                isLoading ? 'bg-slate-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100 active:scale-95'
                             }`}
                         >
-                            {isLoading ? "Signing in..." : "Sign in"}
+                            {isLoading ? "Processing..." : (isRegister ? "Create Account" : "Sign In")}
                         </button>
                     </form>
                 </div>
