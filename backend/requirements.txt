@@ -10,3 +10,4 @@ pytesseract
 Pillow
 pydantic[email]
 google-cloud-vision
+gunicorn
